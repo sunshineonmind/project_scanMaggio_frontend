@@ -1,21 +1,12 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+
 import GuestPage from './GuestPage';
 
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('username');
-    if (token && user) {
-      setIsAuthenticated(true);
-      setUsername(user);
-    }
-  }, []);
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return <GuestPage />;
@@ -26,7 +17,7 @@ function Home() {
        <img src="/logo.png" alt="Logo" className="w-32 h-32 mb-4" />
       {/* Titolo sopra */}
       <h1 className="text-4xl font-bold mt-10 text-gray-800">
-        Benvenuta {username}!
+        Benvenuta {user?.username}!
       </h1>
 
       {/* Jumbotron Container */}

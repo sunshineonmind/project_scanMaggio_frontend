@@ -1,7 +1,13 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
+  username: string;
+  role: string;
+}
+
+interface JwtPayload {
+  exp: number;
   username: string;
   role: string;
 }
@@ -25,19 +31,17 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true); // Nuovo stato di caricamento
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
 
-    if (token && username && role) {
+    if (token) {
       try {
-        const decoded: any = jwt_decode(token);
+        const decoded = jwtDecode<JwtPayload>(token);
 
         if (decoded.exp * 1000 > Date.now()) {
-          setUser({ username, role });
+          setUser({ username: decoded.username, role: decoded.role });
           setIsAuthenticated(true);
         } else {
           logout();
@@ -47,16 +51,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logout();
       }
     }
-    setLoading(false); // Indica che il caricamento è completo
+
+    setLoading(false);
   }, []);
 
   const login = (userData: { username: string; role: string; token: string }) => {
     localStorage.setItem('token', userData.token);
-    localStorage.setItem('username', userData.username);
-    localStorage.setItem('role', userData.role);
     setUser({ username: userData.username, role: userData.role });
     setIsAuthenticated(true);
-    setLoading(false); // Caricamento completato
+    setLoading(false);
   };
 
   const logout = () => {
