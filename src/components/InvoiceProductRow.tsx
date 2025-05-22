@@ -42,13 +42,27 @@ function InvoiceProductRow({
         ? `${apiUrl}/products/${product.barcode}`
         : `${apiUrl}/products`;
 
-      const response = await fetch(url, {
+      const {
+        sconto,
+        iva,
+        ...rest
+      } = editProduct;
+
+      const prodottoPulito = {
+        ...rest,
+        iva: parseFloat(iva.replace(',', '.')),
+        sconto_maggiorazione: sconto   ? Math.abs(parseFloat(sconto.replace('%', '').replace(',', '.')))  : 0
+      };
+
+      console.log('Prodotto inviato:', prodottoPulito);
+
+        const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(editProduct),
+        body: JSON.stringify(prodottoPulito),
       });
 
       if (response.ok) {
