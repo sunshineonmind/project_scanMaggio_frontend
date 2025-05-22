@@ -7,14 +7,17 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [errore, setErrore] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ Usa il custom hook correttamente
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const { login } = useAuth();
+
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
   const handleLogin = async () => {
+    console.log("login....");
+    console.log("Chiamo login su:", `${apiUrl}/auth/login`);
     setErrore('');
 
     try {
-      const res = await fetch(`${apiUrl}/api/auth/login`, {
+      const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -27,15 +30,19 @@ function LoginPage() {
         return;
       }
 
-      // Salva nel context
-      login(data);
+      // Salva il token nel localStorage
+      localStorage.setItem('token', data.token);
 
-      // Reindirizza in base al ruolo
-      if (data.role === 'admin') {
-        navigate('/');
-      } else {
-        navigate('/guest');
-      }
+      // Passa tutti i dati richiesti dal contesto
+      login({
+        username: data.username,
+        role: data.role,
+        token: data.token,
+        isReturning: data.isReturning // opzionale
+      });
+
+      // Redirect in base al ruolo
+      navigate(data.role === 'admin' ? '/' : '/guest');
     } catch (err) {
       console.error('Errore login:', err);
       setErrore('Errore di connessione al server');

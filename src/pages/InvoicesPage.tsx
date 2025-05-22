@@ -57,7 +57,8 @@ function InvoicesPage() {
     formData.append('fattura', selectedFile);
 
     try {
-      const res = await fetch('http://localhost:3001/api/invoices/upload', {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const res = await fetch(`${apiUrl}/invoices/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -94,24 +95,31 @@ function InvoicesPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <h1 className="text-2xl font-bold mb-4">Upload Fattura</h1>
 
-      <input type="file" accept=".pdf" onChange={handleFileChange} className="mb-4" />
-      <button
-        onClick={handleUpload}
-        disabled={!selectedFile || loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-      >
-        {loading ? 'Caricamento...' : 'Carica PDF'}
-      </button>
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-4">
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={handleFileChange}
+          className="w-full sm:w-auto"
+        />
+        <button
+          onClick={handleUpload}
+          disabled={!selectedFile || loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 w-full sm:w-auto"
+        >
+          {loading ? 'Caricamento...' : 'Carica PDF'}
+        </button>
+      </div>
 
-      {message && <p className="mt-4 font-semibold">{message}</p>}
+      {message && <p className="mt-4 font-semibold text-sm sm:text-base">{message}</p>}
 
       {fattura && (
         <div className="mt-6 p-4 bg-gray-100 rounded shadow">
-          <h2 className="text-lg font-bold mb-2">Dati Fattura</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <h2 className="text-lg font-bold mb-4">Dati Fattura</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
             <div><strong>Tipo documento:</strong> {fattura.tipo_documento}</div>
             <div><strong>Articolo 73:</strong> {fattura.articolo_73}</div>
             <div><strong>Numero documento:</strong> {fattura.numero_documento}</div>
@@ -128,33 +136,35 @@ function InvoicesPage() {
       )}
 
       {prodotti.length > 0 && (
-        <table className="mt-6 w-full border text-sm">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2">Barcode</th>
-              <th className="border p-2">Descrizione</th>
-              <th className="border p-2">Quantità</th>
-              <th className="border p-2">UM</th>
-              <th className="border p-2">Sconto</th>
-              <th className="border p-2">%IVA</th>
-              <th className="border p-2">Prezzo Unitario</th>
-              <th className="border p-2">Totale</th>
-              <th className="border p-2">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {prodotti.map((p, i) => (
-              <InvoiceProductRow
-                key={i}
-                product={p}
-                onUpdate={() => handleMarkInserted(p.barcode)}
-                onRemove={handleRemoveProduct}
-                insertedBarcodes={insertedBarcodes}
-                onMarkInserted={handleMarkInserted}
-              />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto mt-6">
+          <table className="w-full border text-sm">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border p-2">Barcode</th>
+                <th className="border p-2">Descrizione</th>
+                <th className="border p-2">Quantità</th>
+                <th className="border p-2">UM</th>
+                <th className="border p-2">Sconto</th>
+                <th className="border p-2">%IVA</th>
+                <th className="border p-2 whitespace-nowrap">Prezzo Unitario</th>
+                <th className="border p-2 whitespace-nowrap">Totale</th>
+                <th className="border p-2">Azioni</th>
+              </tr>
+            </thead>
+            <tbody>
+              {prodotti.map((p, i) => (
+                <InvoiceProductRow
+                  key={i}
+                  product={p}
+                  onUpdate={() => handleMarkInserted(p.barcode)}
+                  onRemove={handleRemoveProduct}
+                  insertedBarcodes={insertedBarcodes}
+                  onMarkInserted={handleMarkInserted}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

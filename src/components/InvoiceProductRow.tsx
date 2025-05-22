@@ -33,17 +33,21 @@ function InvoiceProductRow({
   const [editProduct, setEditProduct] = useState(product);
   const [editMode, setEditMode] = useState(false);
 
-
   const handleSave = async () => {
     try {
       const method = product.found ? 'PUT' : 'POST';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const token = localStorage.getItem('token');
       const url = product.found
-        ? `http://localhost:3001/api/products/${product.barcode}`
-        : `http://localhost:3001/api/products`;
+        ? `${apiUrl}/products/${product.barcode}`
+        : `${apiUrl}/products`;
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(editProduct),
       });
 
@@ -63,8 +67,13 @@ function InvoiceProductRow({
     if (!confirm('Sei sicuro di voler eliminare il prodotto?')) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/products/${product.barcode}`, {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${apiUrl}/products/${product.barcode}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok && onUpdate) {
@@ -91,60 +100,62 @@ function InvoiceProductRow({
       <td className="border p-2">{product.iva}</td>
       <td className="border p-2">{product.prezzo_unitario} €</td>
       <td className="border p-2">{product.prezzo_totale} €</td>
-      <td className="border p-2 space-x-2">
-        {product.found ? (
-          <>
-            {!editMode ? (
+      <td className="border p-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          {product.found ? (
+            <>
+              {!editMode ? (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="bg-yellow-400 text-white px-2 py-1 rounded text-sm"
+                >
+                  Modifica
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handleSave}
+                    className="bg-green-500 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Salva
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditMode(false);
+                      setEditProduct(product);
+                    }}
+                    className="bg-gray-400 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Annulla
+                  </button>
+                </>
+              )}
               <button
-                onClick={() => setEditMode(true)}
-                className="bg-yellow-400 text-white px-2 py-1 rounded"
+                onClick={handleDelete}
+                className="bg-red-500 text-white px-2 py-1 rounded text-sm"
               >
-                Modifica
+                Elimina
               </button>
-            ) : (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="bg-green-500 text-white px-2 py-1 rounded"
-                >
-                  Salva
-                </button>
-                <button
-                  onClick={() => {
-                    setEditMode(false);
-                    setEditProduct(product);
-                  }}
-                  className="bg-gray-400 text-white px-2 py-1 rounded"
-                >
-                  Annulla
-                </button>
-              </>
-            )}
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Elimina
-            </button>
-          </>
-        ) : insertedBarcodes.includes(product.barcode) ? (
-          <span className="text-sm text-green-600 font-semibold">✅ Già inserito</span>
-        ) : (
-          <>
-            <button
-              onClick={handleSave}
-              className="bg-green-500 text-white px-2 py-1 rounded"
-            >
-              Inserisci
-            </button>
-            <button
-              onClick={handleCancel}
-              className="bg-gray-400 text-white px-2 py-1 rounded"
-            >
-              Annulla
-            </button>
-          </>
-        )}
+            </>
+          ) : insertedBarcodes.includes(product.barcode) ? (
+            <span className="text-sm text-green-600 font-semibold">✅ Già inserito</span>
+          ) : (
+            <>
+              <button
+                onClick={handleSave}
+                className="bg-green-500 text-white px-2 py-1 rounded text-sm"
+              >
+                Inserisci
+              </button>
+              <button
+                onClick={handleCancel}
+                className="bg-gray-400 text-white px-2 py-1 rounded text-sm"
+              >
+                Annulla
+              </button>
+            </>
+          )}
+        </div>
       </td>
     </tr>
   );

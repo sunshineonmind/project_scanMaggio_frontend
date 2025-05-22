@@ -14,7 +14,6 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center">
-       <img src="/logo.png" alt="Logo" className="w-32 h-32 mb-4" />
       {/* Titolo sopra */}
       <h1 className="text-4xl font-bold mt-10 text-gray-800">
         Benvenuta {user?.username}!

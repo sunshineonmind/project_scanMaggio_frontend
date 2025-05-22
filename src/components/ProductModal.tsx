@@ -10,6 +10,14 @@ interface ProductModalProps {
     prezzoacquisto: number;
     prezzovendita: number;
     prezzo_prodotto_scontato: number;
+    um?: string;
+    sconto_maggiorazione?: string;
+    iva_percentuale?: number;
+    prezzo_totale?: number;
+    prezzo_unitario?: number;
+    createdon?: string;
+    modifiedon?: string;
+    found: boolean;
   };
   onClose: () => void;
 }
@@ -25,16 +33,17 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
   const [prezzovendita, setPrezzoVendita] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [prezzo_prodotto_scontato, setPrezzoProdottoScontato] = useState(0);
+  const [prezzo_unitario, setPrezzoProdottoUnitario] = useState(0);
 
   useEffect(() => {
     if (existingProduct) {
-      setName(existingProduct.name || '');
-      setDescription(existingProduct.description || '');
-      setAmount(existingProduct.amount || 1);
-      setPrezzoAcquisto(existingProduct.prezzoacquisto || 0);
-      setPrezzoVendita(existingProduct.prezzovendita || 0);
-      setPrezzoProdottoScontato(existingProduct.prezzo_prodotto_scontato || 0);
-
+      setName(existingProduct.name ?? '');
+      setDescription(existingProduct.description ?? '');
+      setAmount(existingProduct.amount ?? 1);
+      setPrezzoAcquisto(existingProduct.prezzoacquisto ?? 0);
+      setPrezzoVendita(existingProduct.prezzovendita ?? 0);
+      setPrezzoProdottoScontato(existingProduct.prezzo_prodotto_scontato ?? 0);
+      setPrezzoProdottoUnitario(existingProduct.prezzo_unitario ?? 0);
     }
   }, [existingProduct]);
 
@@ -44,13 +53,17 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
       return;
     }
 
+    const token = localStorage.getItem('token');
+    const apiUrl = import.meta.env.VITE_API_BASE_URL;
+
     const newProduct = {
       barcode,
-      name,
-      description,
-      amount,
-      prezzoacquisto,
-      prezzovendita,
+      name: name.trim(),
+      description: description.trim(),
+      amount: isNaN(amount) ? 0 : amount,
+      prezzoacquisto: isNaN(prezzoacquisto) ? 0 : prezzoacquisto,
+      prezzovendita: isNaN(prezzovendita) ? 0 : prezzovendita,
+      prezzo_unitario: isNaN(prezzo_unitario) ? 0 : prezzo_unitario
     };
 
     try {
@@ -58,9 +71,12 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
         const updated = updateProduct(barcode, newProduct);
         if (!updated) addProduct(newProduct);
 
-        const response = await fetch(`http://localhost:3001/api/products/${barcode}`, {
+        const response = await fetch(`${apiUrl}/products/${barcode}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(newProduct),
         });
 
@@ -69,9 +85,12 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
       } else {
         addProduct(newProduct);
 
-        const response = await fetch('http://localhost:3001/api/products', {
+        const response = await fetch(`${apiUrl}/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(newProduct),
         });
 
@@ -93,7 +112,6 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
         </h2>
 
         <div className="flex flex-col gap-4">
-          {/* Barcode */}
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Barcode</label>
             <input
@@ -106,7 +124,6 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
             {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
           </div>
 
-          {/* Nome */}
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Nome</label>
             <input
@@ -117,7 +134,6 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
             />
           </div>
 
-          {/* Descrizione */}
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Descrizione</label>
             <input
@@ -128,7 +144,6 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
             />
           </div>
 
-          {/* Quantità */}
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Quantità</label>
             <input
@@ -139,7 +154,6 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
             />
           </div>
 
-          {/* Prezzo acquisto */}
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Prezzo Prodotto Scontato</label>
             <input
@@ -150,7 +164,26 @@ function ProductModal({ barcode, existingProduct, onClose }: ProductModalProps) 
             />
           </div>
 
-          {/* Prezzo vendita */}
+          <div className="flex flex-col">
+            <label className="font-medium text-sm mb-1">Prezzo Unitario</label>
+            <input
+              type="number"
+              className="border p-2 rounded"
+              value={prezzo_unitario}
+              onChange={(e) => setPrezzoProdottoUnitario(Number(e.target.value))}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="font-medium text-sm mb-1">Prezzo Acquisto</label>
+            <input
+              type="number"
+              className="border p-2 rounded"
+              value={prezzoacquisto}
+              onChange={(e) => setPrezzoAcquisto(Number(e.target.value))}
+            />
+          </div>
+
           <div className="flex flex-col">
             <label className="font-medium text-sm mb-1">Prezzo di vendita</label>
             <input

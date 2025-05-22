@@ -32,7 +32,12 @@ function ScannerPage() {
           return;
         }
 
-        const cameraId = devices[0].id;
+        const backCamera = devices.find(device =>
+        device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')
+        );
+
+        const cameraId = backCamera?.id || devices[0].id;
+
 
         await scanner.start(
           cameraId,
@@ -70,7 +75,8 @@ function ScannerPage() {
 
   const onBarcodeScanned = async (barcode: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/products/${barcode}`);
+      const apiUrl = import.meta.env.VITE_API_BASE_URL;
+      const response = await fetch(`${apiUrl}/products/${barcode}`);
       if (response.ok) {
         const productFromDB = await response.json();
         setScannedBarcode(barcode);

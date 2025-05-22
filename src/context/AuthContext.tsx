@@ -4,6 +4,8 @@ import { jwtDecode } from 'jwt-decode';
 interface User {
   username: string;
   role: string;
+  token: string;
+  isReturning?: boolean;
 }
 
 interface JwtPayload {
@@ -16,7 +18,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   loading: boolean;
-  login: (userData: { username: string; role: string; token: string }) => void;
+  login: (userData: User) => void; // <-- ora accetta tutto incluso isReturning
   logout: () => void;
 }
 
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const decoded = jwtDecode<JwtPayload>(token);
 
         if (decoded.exp * 1000 > Date.now()) {
-          setUser({ username: decoded.username, role: decoded.role });
+          setUser({ username: decoded.username, role: decoded.role, token });
           setIsAuthenticated(true);
         } else {
           logout();
@@ -55,9 +57,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = (userData: { username: string; role: string; token: string }) => {
+  const login = (userData: User) => {
     localStorage.setItem('token', userData.token);
-    setUser({ username: userData.username, role: userData.role });
+    setUser(userData); // ⬅️ salva anche isReturning se presente
     setIsAuthenticated(true);
     setLoading(false);
   };
