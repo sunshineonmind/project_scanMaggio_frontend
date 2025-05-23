@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import InvoiceProductRow from '../components/InvoiceProductRow';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 interface InvoiceMetadata {
   tipo_documento: string;
@@ -68,7 +71,17 @@ function InvoicesPage() {
       if (res.ok) {
         setProdotti(data.prodotti || []);
         setFattura(data.fattura || null);
-        setMessage(`Prodotti trovati: ${data.prodotti.length}`);
+        //setMessage(`Prodotti trovati: ${data.prodotti.length}`);
+        if (data.fatturaAggiornata) {
+            toast.info("⚠️ Fattura già presente.", {
+              position: "top-center",
+              autoClose: 8000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true
+            });
+          }
       } else {
         setMessage('Errore durante l\'upload');
       }
@@ -96,6 +109,7 @@ function InvoicesPage() {
 
   return (
     <div className="p-4 sm:p-6">
+      <ToastContainer />
       <h1 className="text-2xl font-bold mb-4">Upload Fattura</h1>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-4">
@@ -125,12 +139,6 @@ function InvoicesPage() {
             <div><strong>Numero documento:</strong> {fattura.numero_documento}</div>
             <div><strong>Data documento:</strong> {fattura.data_documento}</div>
             <div><strong>Codice destinatario:</strong> {fattura.codice_destinatario}</div>
-            <div><strong>Modalità pagamento:</strong> {fattura.modalita_pagamento}</div>
-            <div><strong>Dettagli:</strong> {fattura.dettagli}</div>
-            <div><strong>Scadenze:</strong> {fattura.scadenze}</div>
-            <div><strong>Importo:</strong> {fattura.importo} €</div>
-            <div><strong>Fornitore:</strong> {fattura.fornitore}</div>
-            <div><strong>Cliente:</strong> {fattura.cliente}</div>
           </div>
         </div>
       )}
